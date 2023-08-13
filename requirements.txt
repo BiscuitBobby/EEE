@@ -1,0 +1,4 @@
+speechrecognition
+pydub
+pyaudio
+pyttsx3
