@@ -2,28 +2,23 @@ import time
 from kivy.app import App
 from kivy.uix.image import Image
 import threading
-from backup import transcribe_audio
+from backup import *
 
 class MainApp(App):
     class MyThread(threading.Thread):
-        def __init__(self):
+        def __init__(self, transcriber):
             super().__init__()
+            self.transcriber = transcriber
             self.stop_flag = threading.Event()
 
         def run(self):
             while not self.stop_flag.is_set():
                 print("Thread is running...")
-                self.transcribe_audio_thread()
+                self.transcriber.transcribe_audio()  # Corrected this line
             print("Thread stopped.")
 
         def stop(self):
             self.stop_flag.set()
-
-        def transcribe_audio_thread(self):
-            try:
-                transcribe_audio()
-            except:
-                print("failed to start transcription")
 
     def build(self):
         self.img = Image(source='/home/user/Documents/EEE/kivy/assets/mic_plain.png',
@@ -39,12 +34,13 @@ class MainApp(App):
             # Change the image source or any other properties
             if not hasattr(self, 'audio_thread') or not self.audio_thread.is_alive():
                 self.img.source = '/home/user/Documents/EEE/kivy/assets/mic_active.png'
-                self.audio_thread = self.MyThread()
+                self.audio_thread = self.MyThread(transcriber)
                 self.audio_thread.start()  # Use start() instead of run()
             else:
                 self.img.source = '/home/user/Documents/EEE/kivy/assets/mic_grey.png'
                 self.audio_thread.stop()
-                print("disconnected (not really)")
+                self.audio_thread.join()
+                print("disconnected")
 
 if __name__ == '__main__':
     app = MainApp()
